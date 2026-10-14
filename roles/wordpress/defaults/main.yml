@@ -1,0 +1,7 @@
+---
+wordpress_db_socket: "/run/mysqld/mysqld.sock"
+
+
+wordpress_site_options:
+  blogdescription: "{{ wp_site_tagline }}"
+  timezone_string: "{{ wp_timezone }}"
