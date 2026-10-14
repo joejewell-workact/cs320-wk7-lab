@@ -2,6 +2,7 @@
 
 [wordpress_servers]
 lampserver ansible_host=10.2.37.98 ansible_user=joe
+rhelserver ansible_host=10.2.37.50 ansible_user=joe
 
 [wordpress_servers:vars]
 ansible_python_interpreter=/usr/bin/python3
