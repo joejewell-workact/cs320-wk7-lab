@@ -1,0 +1,21 @@
+---
+# RedHat specifics
+stack_config_app_group: "nginx"
+stack_config_nologin_shell: "/sbin/nologin"
+
+# php-fpm
+stack_config_fpm_service: "php-fpm"
+stack_config_fpm_pool_file: "/etc/php-fpm.d/wordpress.conf"
+stack_config_fpm_socket: "/run/php-fpm/wordpress.sock"
+stack_config_fpm_test_cmd: "php-fpm -t"
+stack_config_fpm_listen_owner: "nginx"
+stack_config_fpm_listen_group: "nginx"
+
+# nginx
+stack_config_nginx_site: "/etc/nginx/conf.d/wordpress.conf"
+stack_config_nginx_enabled: ""
+stack_config_nginx_default_site: ""
+
+# tls
+stack_config_ssl_cert_path: "/etc/pki/tls/certs/wordpress.crt"
+stack_config_ssl_key_path: "/etc/pki/tls/private/wordpress.key"

@@ -1,4 +1,15 @@
 ---
+- name: Load distribution-specific variables
+  ansible.builtin.include_vars:
+    file: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_facts['os_family'] | lower }}.yml"
+        - default.yml
+      paths:
+        - vars
+
 # database (as root)
 - name: create wordpress database
   ansible.mariadb.mariadb_db:
@@ -44,7 +55,7 @@
       ansible.builtin.file:
         path: "{{ wp_install_dir }}/wp-config.php"
         owner: "{{ wp_app_user }}"
-        group: "{{ wp_app_group }}"
+        group: "{{ stack_config_app_group }}"
         mode: "0640"
 
     - name: Check wp is installed
@@ -109,3 +120,12 @@
       loop_control:
         label: "{{ item.item }}"
       when: item.rc != 0
+
+# selinux (as root): apply the wp-content label set in stack_config
+- name: Apply SELinux labels to wp-content
+  ansible.builtin.command: "restorecon -Rv {{ wp_install_dir }}/wp-content"
+  register: wordpress_restorecon
+  changed_when: wordpress_restorecon.stdout | length > 0
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+    - ansible_facts['selinux']['status'] == "enabled"

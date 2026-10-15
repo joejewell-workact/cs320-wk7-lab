@@ -1,11 +1,11 @@
 ; {{ ansible_managed }}
 [wordpress]
 user = {{ wp_app_user }}
-group = {{ wp_app_group }}
+group = {{ stack_config_app_group }}
 
 listen = {{ stack_config_fpm_socket }}
-listen.owner = www-data
-listen.group = www-data
+listen.owner = {{ stack_config_fpm_listen_owner }}
+listen.group = {{ stack_config_fpm_listen_group }}
 listen.mode = 0660
 
 pm = dynamic

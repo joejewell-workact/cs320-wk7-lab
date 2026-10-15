@@ -9,6 +9,12 @@
     - name: Gather service facts
       ansible.builtin.service_facts:
 
+    - name: Set PHP-FPM service name for this OS family
+      ansible.builtin.set_fact:
+        validate_fpm_service: >-
+          {{ ('php' + php_version + '-fpm')
+             if ansible_facts['os_family'] == 'Debian' else 'php-fpm' }}
+
     - name: Assert required services are running and enabled
       ansible.builtin.assert:
         that:
@@ -19,7 +25,7 @@
       loop:
         - nginx.service
         - mariadb.service
-        - "php{{ php_version }}-fpm.service"
+        - "{{ validate_fpm_service }}.service"
 
     # wordpress
     - name: makesure wp core is installed

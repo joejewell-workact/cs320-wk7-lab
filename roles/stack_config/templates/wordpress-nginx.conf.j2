@@ -9,8 +9,8 @@ server {
     root {{ wp_install_dir }};
     index index.php;
 
-    ssl_certificate     {{ ssl_cert_path }};
-    ssl_certificate_key {{ ssl_key_path }};
+    ssl_certificate     {{ stack_config_ssl_cert_path }};
+    ssl_certificate_key {{ stack_config_ssl_key_path }};
     ssl_protocols       TLSv1.2 TLSv1.3;
 
     client_max_body_size {{ stack_config_php_upload_max }};
@@ -29,7 +29,8 @@ server {
     }
 
     location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_pass unix:{{ stack_config_fpm_socket }};
     }
 

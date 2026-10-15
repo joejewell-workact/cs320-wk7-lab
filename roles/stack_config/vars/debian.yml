@@ -1,0 +1,22 @@
+---
+# Debian / Ubuntu specifics
+stack_config_app_group: "www-data"
+stack_config_nologin_shell: "/usr/sbin/nologin"
+
+# php-fpm
+stack_config_fpm_pool_dir: "/etc/php/{{ php_version }}/fpm/pool.d"
+stack_config_fpm_service: "php{{ php_version }}-fpm"
+stack_config_fpm_pool_file: "{{ stack_config_fpm_pool_dir }}/wordpress.conf"
+stack_config_fpm_socket: "/run/php/php{{ php_version }}-fpm-wordpress.sock"
+stack_config_fpm_test_cmd: "php-fpm{{ php_version }} -t"
+stack_config_fpm_listen_owner: "www-data"
+stack_config_fpm_listen_group: "www-data"
+
+# nginx
+stack_config_nginx_site: "/etc/nginx/sites-available/wordpress.conf"
+stack_config_nginx_enabled: "/etc/nginx/sites-enabled/wordpress.conf"
+stack_config_nginx_default_site: "/etc/nginx/sites-enabled/default"
+
+# tls
+stack_config_ssl_cert_path: "/etc/ssl/certs/wordpress.crt"
+stack_config_ssl_key_path: "/etc/ssl/private/wordpress.key"

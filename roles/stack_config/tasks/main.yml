@@ -1,11 +1,22 @@
 ---
+- name: Load distribution-specific variables
+  ansible.builtin.include_vars:
+    file: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_facts['os_family'] | lower }}.yml"
+        - default.yml
+      paths:
+        - vars
+
 # application account 
 - name: Create WordPress application account
   ansible.builtin.user:
     name: "{{ wp_app_user }}"
-    group: "{{ wp_app_group }}"
+    group: "{{ stack_config_app_group }}"
     system: true
-    shell: /usr/sbin/nologin
+    shell: "{{ stack_config_nologin_shell }}"
     home: "{{ stack_config_app_home }}"
     create_home: true
     state: present
@@ -16,8 +27,17 @@
     path: "{{ wp_install_dir }}"
     state: directory
     owner: "{{ wp_app_user }}"
-    group: "{{ wp_app_group }}"
+    group: "{{ stack_config_app_group }}"
     mode: "0755"
+
+- name: Label wp-content as writable by PHP-FPM (SELinux)
+  community.general.sefcontext:
+    target: "{{ wp_install_dir }}/wp-content(/.*)?"
+    setype: httpd_sys_rw_content_t
+    state: present
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+    - ansible_facts['selinux']['status'] == "enabled"
 
 # database service 
 - name: Ensure MariaDB is running and enabled
@@ -37,30 +57,30 @@
   notify: Restart php-fpm
 
 - name: Validate PHP-FPM configuration
-  ansible.builtin.command: "php-fpm{{ php_version }} -t"
+  ansible.builtin.command: "{{ stack_config_fpm_test_cmd }}"
   changed_when: false
 
 - name: Ensure PHP-FPM is running and enabled
   ansible.builtin.service:
-    name: "php{{ php_version }}-fpm"
+    name: "{{ stack_config_fpm_service }}"
     state: started
     enabled: true
 
-# slef signed cert 
+# self signed cert 
 - name: Generate self-signed cert 
   ansible.builtin.command: >
     openssl req -x509 -nodes -newkey rsa:2048 -days 365
-    -keyout {{ ssl_key_path }}
-    -out {{ ssl_cert_path }}
+    -keyout {{ stack_config_ssl_key_path }}
+    -out {{ stack_config_ssl_cert_path }}
     -subj "/CN={{ nginx_server_name }}"
     -addext "subjectAltName=IP:{{ nginx_server_name }}"
   args:
-    creates: "{{ ssl_cert_path }}"
+    creates: "{{ stack_config_ssl_cert_path }}"
   notify: Reload nginx
 
 - name: Restrict TLS private key permissions
   ansible.builtin.file:
-    path: "{{ ssl_key_path }}"
+    path: "{{ stack_config_ssl_key_path }}"
     owner: root
     group: root
     mode: "0600"
@@ -78,15 +98,17 @@
 - name: Enable WordPress nginx site
   ansible.builtin.file:
     src: "{{ stack_config_nginx_site }}"
-    dest: /etc/nginx/sites-enabled/wordpress.conf
+    dest: "{{ stack_config_nginx_enabled }}"
     state: link
   notify: Reload nginx
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Disable default nginx 
   ansible.builtin.file:
-    path: /etc/nginx/sites-enabled/default
+    path: "{{ stack_config_nginx_default_site }}"
     state: absent
   notify: Reload nginx
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Validate nginx config 
   ansible.builtin.command: nginx -t
@@ -97,6 +119,25 @@
     name: nginx
     state: started
     enabled: true
+
+# firewall 
+- name: Ensure firewalld is running and enabled
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Open HTTP and HTTPS in firewalld
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - http
+    - https
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: Apply config changes before the next step 
   ansible.builtin.meta: flush_handlers

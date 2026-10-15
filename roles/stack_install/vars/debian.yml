@@ -1,0 +1,27 @@
+---
+# Packages for Debian / Ubuntu (apt names)
+stack_install_packages:
+  # webserver
+  - nginx
+  # database
+  - mariadb-server
+  - mariadb-client
+  # php runtime
+  - php-fpm
+  - php-cli
+  - php-mysql
+  - php-curl
+  - php-xml
+  - php-mbstring
+  - php-intl
+  - php-zip
+  - php-gd
+  - php-imagick
+  - php-igbinary
+  - php-bcmath
+  # other things needed
+  - openssl
+  - curl
+  - unzip
+  - python3-pymysql
+  - acl

@@ -1,0 +1,3 @@
+---
+# debian
+wordpress_db_socket: "/run/mysqld/mysqld.sock"
