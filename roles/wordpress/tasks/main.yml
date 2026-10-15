@@ -30,6 +30,15 @@
   no_log: true
 
 # woedpress app acct
+- name: Raise PHP CLI memory limit for WP-CLI
+  ansible.builtin.copy:
+    dest: "{{ wordpress_cli_ini_dir }}/99-wp-cli.ini"
+    content: |
+      ; Raised so WP-CLI can extract large archives
+      memory_limit=512M
+    owner: root
+    group: root
+    mode: "0644"
 - name: Deploy and configure wp with wp-cli
   become_user: "{{ wp_app_user }}"
   block:

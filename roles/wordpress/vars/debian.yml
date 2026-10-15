@@ -1,3 +1,4 @@
 ---
 # debian
 wordpress_db_socket: "/run/mysqld/mysqld.sock"
+wordpress_cli_ini_dir: "/etc/php/{{ php_version }}/cli/conf.d"

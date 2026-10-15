@@ -1,3 +1,4 @@
 ---
 # redhat
 wordpress_db_socket: "/var/lib/mysql/mysql.sock"
+wordpress_cli_ini_dir: "/etc/php.d"
